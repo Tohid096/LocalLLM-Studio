@@ -2,8 +2,7 @@
 
 Run large language models, vision models and image generation **fully offline
 on your Windows PC** — private chat with PDF/image context, and a local image
-studio. Optimized for AMD Ryzen AI (Radeon iGPU via Vulkan, AVX-512 CPU
-kernels), works on any x64 Windows 10/11 machine with a GPU driver.
+studio. works on any x64 Windows 10/11 machine with a GPU driver.
 
 Built with Electron + [llama.cpp](https://github.com/ggml-org/llama.cpp)
 (Vulkan build) for LLM/VLM chat and
@@ -11,7 +10,6 @@ Built with Electron + [llama.cpp](https://github.com/ggml-org/llama.cpp)
 (Vulkan build) for image generation. **MIT licensed.**
 
 > Looking for the ready-to-run app? Download the installer from the
-> [releases page](https://github.com/YOUR-USERNAME/LocalLLM-Studio/releases)
 
 
 ## What's new in v2.2.1
