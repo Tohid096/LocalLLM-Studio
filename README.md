@@ -12,7 +12,7 @@ Built with Electron + [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
 > Looking for the ready-to-run app? Download the installer from the
 > [releases page](https://github.com/YOUR-USERNAME/LocalLLM-Studio/releases)
-> after you publish it — see `GIT-GUIDE.md`.
+
 
 ## What's new in v2.2.1
 
