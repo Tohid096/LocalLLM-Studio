@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Syntax & structure check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate package.json / lockfile
+        run: node -e "const p=require('./package.json'); ['main.js','preload.js','catalog.js','gguf.js'].forEach(f=>require('fs').accessSync(f)); console.log('entry points OK:', p.name, p.version)"
+
+      - name: Syntax-check all JavaScript
+        run: |
+          set -e
+          files=$(find . -path ./node_modules -prune -o -name '*.js' -print)
+          echo "$files" | xargs -n1 node --check
+          echo "All JS files parse cleanly:"
+
+      - name: Renderer assets present
+        run: |
+          test -f renderer/index.html
+          test -f renderer/vendor/pdf.min.js
+          test -f build/icon.ico
+          test -f build/installer.nsi
+          test -f engines/README.md
+          echo "Layout OK"

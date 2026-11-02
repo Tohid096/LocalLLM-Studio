@@ -1,0 +1,67 @@
+{
+  "name": "localllm-studio",
+  "productName": "LocalLLM Studio",
+  "version": "2.2.1",
+  "description": "Local AI studio: LLM chat, vision models (VLM), PDF/document reading and image generation - accelerated with Vulkan iGPU on AMD Ryzen AI",
+  "author": "LocalLLM",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "ai.localllm.studio",
+    "productName": "LocalLLM Studio",
+    "directories": {
+      "output": "../release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "catalog.js",
+      "gguf.js",
+      "renderer/**/*",
+      "package.json",
+      "!**/*.md"
+    ],
+    "extraResources": [
+      {
+        "from": "engines",
+        "to": "engines"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LocalLLM Studio",
+      "artifactName": "LocalLLM-Studio-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

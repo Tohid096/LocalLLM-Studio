@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self'; worker-src 'self'">
+  <title>LocalLLM Studio</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="vendor/highlight-theme.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div class="brand">
+        <div class="brand-logo">L</div>
+        <div>
+          <div class="brand-name">LocalLLM Studio</div>
+          <div class="brand-sub" id="brand-sub">v2.2.1</div>
+        </div>
+      </div>
+      <nav id="nav">
+        <button class="nav-item active" data-tab="chat"><span class="nav-ico">💬</span>Chat</button>
+        <button class="nav-item" data-tab="projects"><span class="nav-ico">🗂️</span>Projects</button>
+        <button class="nav-item" data-tab="studio"><span class="nav-ico">🎨</span>Image Studio</button>
+        <button class="nav-item" data-tab="models"><span class="nav-ico">📦</span>Models</button>
+        <button class="nav-item" data-tab="docs"><span class="nav-ico">📄</span>Documents</button>
+        <button class="nav-item" data-tab="hardware"><span class="nav-ico">⚡</span>Hardware</button>
+        <button class="nav-item" data-tab="settings"><span class="nav-ico">⚙️</span>Settings</button>
+      </nav>
+      <div id="engine-badges">
+        <div class="badge" id="badge-llm"><span class="dot"></span><span class="badge-txt">LLM off</span></div>
+        <div class="badge" id="badge-sd"><span class="dot"></span><span class="badge-txt">Image engine off</span></div>
+      </div>
+    </aside>
+
+    <main id="main">
+      <!-- ============ CHAT ============ -->
+      <section id="tab-chat" class="tab active">
+        <div class="chat-wrap">
+          <div class="chat-side">
+            <button class="btn btn-primary btn-block" id="btn-new-chat">＋ New chat</button>
+            <div id="chat-list" class="chat-list"></div>
+          </div>
+          <div class="chat-main">
+            <div class="chat-toolbar">
+              <select id="chat-model-select" class="select"></select>
+              <div class="chip" id="chat-model-chip">no model</div>
+              <div class="flex-1"></div>
+              <label class="btn btn-ghost" id="btn-attach" title="Attach an image (vision models)">🖼️ <span>Image</span><input type="file" id="file-image" accept="image/*" multiple hidden></label>
+              <label class="btn btn-ghost" id="btn-attach-doc" title="Attach documents, code or data files as context">📎 <span>Doc / Code</span><input type="file" id="file-doc" accept=".pdf,.txt,.md,.markdown,.json,.csv,.tsv,.log,.xml,.yml,.yaml,.toml,.ini,.cfg,.conf,.env,.html,.htm,.css,.js,.mjs,.cjs,.jsx,.ts,.tsx,.py,.pyw,.rb,.go,.rs,.java,.kt,.kts,.swift,.c,.h,.cpp,.hpp,.cc,.cxx,.cs,.php,.pl,.lua,.sh,.bash,.zsh,.bat,.cmd,.ps1,.psm1,.sql,.r,.m,.dart,.scala,.vue,.svelte,.tex,.srt,.vtt,.ipynb" multiple hidden></label>
+              <button class="btn btn-ghost" id="btn-chat-model" title="Load / unload model">⏻</button>
+            </div>
+            <div id="attach-strip" class="attach-strip"></div>
+            <div id="messages" class="messages"></div>
+            <div class="composer">
+              <textarea id="chat-input" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for a new line)"></textarea>
+              <button class="btn btn-stop" id="btn-stop" title="Stop generation and keep the text generated so far" hidden>⏹ Stop</button>
+              <button class="btn btn-primary" id="btn-send">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PROJECTS ============ -->
+      <section id="tab-projects" class="tab">
+        <div class="projects-wrap">
+          <div class="proj-side">
+            <div class="proj-head">
+              <div class="proj-title" id="proj-title">No project open</div>
+              <div class="proj-sub" id="proj-sub">Open a folder to work with its files</div>
+            </div>
+            <div class="proj-toolbar">
+              <button class="btn btn-sm btn-primary" id="btn-proj-open" title="Open a project folder">📂 Open folder</button>
+              <button class="btn btn-sm" id="btn-proj-newfile" title="Create a new file">＋ File</button>
+              <button class="btn btn-sm" id="btn-proj-newdir" title="Create a new folder">＋ Folder</button>
+              <button class="btn btn-sm" id="btn-proj-refresh" title="Rescan the project">↻</button>
+              <button class="btn btn-sm" id="btn-proj-reveal" title="Open the project in Explorer">🗂</button>
+            </div>
+            <div id="proj-tree" class="proj-tree"></div>
+          </div>
+          <div class="proj-editor-col">
+            <div class="editor-head">
+              <span class="editor-file" id="editor-file">no file open</span>
+              <span class="editor-state" id="editor-dirty"></span>
+              <div class="flex-1"></div>
+              <button class="btn btn-sm btn-primary" id="btn-proj-save" disabled>💾 Save (Ctrl+S)</button>
+            </div>
+            <div class="editor-empty" id="editor-empty">
+              <div class="empty">Pick a file in the tree to edit it here.<br><small>Changes are written straight back to your project folder.</small></div>
+            </div>
+            <div class="editor-wrap" id="editor-wrap" style="display:none">
+              <textarea id="proj-editor" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"></textarea>
+            </div>
+          </div>
+          <div class="proj-agent">
+            <div class="agent-head">
+              <div>
+                <div class="agent-title">🤖 Project Agent</div>
+                <div class="agent-sub">uses the model selected in Chat · writes real files</div>
+              </div>
+              <label class="agent-auto" title="Apply the agent's file writes to disk automatically"><input type="checkbox" id="agent-auto" checked> auto-apply</label>
+            </div>
+            <div class="agent-ctx" id="agent-ctx"></div>
+            <div class="agent-ctx-bar">
+              <span class="hint" id="agent-ctx-stats">No files in context</span>
+              <div class="agent-ctx-btns">
+                <button class="btn btn-sm" id="btn-ctx-open-file" title="Add the file open in the editor">＋ open file</button>
+                <button class="btn btn-sm" id="btn-ctx-all" title="Add all project text files">＋ all files</button>
+              </div>
+            </div>
+            <div id="agent-log" class="agent-log"></div>
+            <div class="agent-composer">
+              <textarea id="agent-task" rows="2" placeholder="Task for the agent… e.g. “create a REST API with auth: server.js, routes.js, README”"></textarea>
+              <button class="btn btn-primary" id="btn-agent-run">▶ Run</button>
+              <button class="btn btn-stop" id="btn-agent-stop" hidden>⏹ Stop</button>
+            </div>
+            <div class="agent-foot">
+              <button class="btn btn-sm" id="btn-agent-clear">🗑 Clear</button>
+              <span class="hint">The agent loops: plan → write files → check, until it replies DONE.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ STUDIO ============ -->
+      <section id="tab-studio" class="tab">
+        <div class="studio-wrap">
+          <div class="studio-panel">
+            <h2>Image Studio</h2>
+            <div class="field">
+              <label>Model</label>
+              <select id="sd-model-select" class="select"></select>
+              <div class="hint" id="sd-model-hint"></div>
+            </div>
+            <button class="btn btn-primary btn-block" id="btn-sd-load">Load engine</button>
+            <div id="sd-engine-status" class="engine-status"></div>
+
+            <div class="field">
+              <label>Prompt</label>
+              <textarea id="sd-prompt" rows="4" placeholder="Describe the image… e.g. a cozy cabin in a snowy forest at dusk, warm window light, ultra detailed"></textarea>
+            </div>
+            <div class="field">
+              <label>Negative prompt</label>
+              <textarea id="sd-negative" rows="2" placeholder="things to avoid…"></textarea>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Width</label><input type="number" id="sd-width" min="64" max="2048" step="8" value="512"></div>
+              <div class="field"><label>Height</label><input type="number" id="sd-height" min="64" max="2048" step="8" value="512"></div>
+              <div class="field"><label>Steps</label><input type="number" id="sd-steps" min="1" max="100" value="25"></div>
+              <div class="field"><label>Guidance (CFG)</label><input type="number" id="sd-cfg" min="0" max="30" step="0.5" value="7"></div>
+              <div class="field"><label>Sampler</label>
+                <select id="sd-sampler" class="select">
+                  <option>euler</option><option selected>euler_a</option><option>heun</option><option>dpm2</option>
+                  <option>dpm++2s_a</option><option>dpm++2m</option><option>dpm++2mv2</option><option>ipndm</option>
+                  <option>ipndm_v</option><option>lcm</option><option>ddim_trailing</option><option>tcd</option>
+                  <option>res_multistep</option><option>res_2s</option><option>er_sde</option><option>euler_ge</option>
+                  <option>dpm++2m_sde</option><option>lms</option>
+                </select>
+              </div>
+              <div class="field"><label>Batch</label><input type="number" id="sd-batch" min="1" max="8" value="1"></div>
+              <div class="field"><label>Seed (-1 random)</label><input type="number" id="sd-seed" value="-1"></div>
+            </div>
+            <button class="btn btn-primary btn-block btn-lg" id="btn-generate">✨ Generate</button>
+            <div id="sd-progress" class="sd-progress"></div>
+          </div>
+          <div class="studio-gallery">
+            <div class="gallery-head">
+              <h3>Gallery</h3>
+              <button class="btn btn-ghost btn-sm" id="btn-open-gallery">Open folder</button>
+            </div>
+            <div id="gallery" class="gallery"><div class="empty">Generated images appear here.<br><small>Tip: DreamShaper 8 with 25 steps gives crisp, colorful results.</small></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MODELS ============ -->
+      <section id="tab-models" class="tab">
+        <div class="page">
+          <div class="page-head">
+            <h2>Models</h2>
+            <div class="page-head-actions">
+              <button class="btn btn-primary" id="btn-add-local">＋ Add local model (.gguf)</button>
+            </div>
+          </div>
+          <div class="hint" id="models-hint">Downloads are resumable. Models are stored per-user and never leave your PC.</div>
+          <div id="models-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ DOCS ============ -->
+      <section id="tab-docs" class="tab">
+        <div class="page">
+          <div class="page-head">
+            <h2>Documents</h2>
+            <div class="page-head-actions">
+              <button class="btn btn-primary" id="btn-open-pdf">📂 Open PDF / text / code</button>
+              <input type="file" id="docs-file-input" accept=".pdf,.txt,.md,.markdown,.json,.csv,.tsv,.log,.xml,.yml,.yaml,.toml,.ini,.cfg,.conf,.env,.html,.htm,.css,.js,.mjs,.cjs,.jsx,.ts,.tsx,.py,.pyw,.rb,.go,.rs,.java,.kt,.kts,.swift,.c,.h,.cpp,.hpp,.cc,.cxx,.cs,.php,.pl,.lua,.sh,.bash,.zsh,.bat,.cmd,.ps1,.psm1,.sql,.r,.m,.dart,.scala,.vue,.svelte,.tex,.srt,.vtt,.ipynb" hidden>
+            </div>
+          </div>
+          <div class="docs-wrap">
+            <div class="docs-viewer" id="docs-viewer">
+              <div class="empty">Open a PDF, text or code file to read it here.<br><small>Extract its text and ask the AI about it in Chat.</small></div>
+            </div>
+            <div class="docs-side">
+              <div class="card">
+                <h3>Document AI</h3>
+                <div class="hint" id="doc-stats">No document loaded.</div>
+                <button class="btn btn-block" id="btn-doc-extract" disabled>📝 Extract text</button>
+                <button class="btn btn-block" id="btn-doc-summarize" disabled>🤖 Ask AI about this document</button>
+                <div id="doc-extracted" class="doc-extracted"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HARDWARE ============ -->
+      <section id="tab-hardware" class="tab">
+        <div class="page">
+          <div class="page-head"><h2>Hardware &amp; Acceleration</h2></div>
+          <div id="hw-content" class="hw-grid"></div>
+        </div>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section id="tab-settings" class="tab">
+        <div class="page">
+          <div class="page-head"><h2>Settings</h2></div>
+          <div class="settings-grid" id="settings-content"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast-wrap"></div>
+
+  <script src="vendor/pdf.min.js"></script>
+  <script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js'; }</script>
+  <script src="vendor/highlight.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/projects.js"></script>
+  <script src="js/studio.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/docs.js"></script>
+  <script src="js/hardware.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

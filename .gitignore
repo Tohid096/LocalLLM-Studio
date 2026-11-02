@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Engine binaries are third-party MIT projects fetched via
+# scripts/get-engines.ps1 (see engines/README.md) - never commit them.
+engines/*
+!engines/README.md
+
+# Build output
+release/
+dist/
+out/
+*.exe
+!scripts/*.exe
+
+# Runtime / user data (in case you ran the app from the repo)
+*.log
+cache/
+models/
+
+# OS junk
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
